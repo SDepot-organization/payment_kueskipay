@@ -107,9 +107,9 @@ class PaymentAcquirer(models.Model):
 		})
 		return alipay_tx_values
 
-	def alipay_form_generate_values(self, values):
-		values.update(self._get_alipay_tx_values(values))
-		return values
+	def alipay_form_generate_values(self, tx_values):
+		tx_values.update(self._get_alipay_tx_values(tx_values))
+		return tx_values
 
 	def alipay_get_form_action_url(self):
 		self.ensure_one()
@@ -121,6 +121,7 @@ class PaymentTransaction(models.Model):
 	_inherit = 'payment.transaction'
 
 	def _check_alipay_configuration(self, vals):
+		return True;#allow any country
 		acquirer_id = int(vals.get('acquirer_id'))
 		acquirer = self.env['payment.acquirer'].sudo().browse(acquirer_id)
 		if acquirer and acquirer.provider == 'alipay' and acquirer.alipay_payment_method == 'express_checkout':

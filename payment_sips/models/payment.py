@@ -58,7 +58,7 @@ class AcquirerSips(models.Model):
 		# rounded to its smallest unit, depends on the currency
 		amount = round(values['amount'] * (10 ** sips_currency.decimal))
 
-		sips_tx_values = dict(values)
+		tx_values = dict(values)
 		data = {
 			'amount': amount,
 			'currencyCode': sips_currency.iso_id,
@@ -69,20 +69,20 @@ class AcquirerSips(models.Model):
 			'statementReference': values['reference'],
 			'keyVersion': self.sips_key_version,
 		}
-		sips_tx_values.update({
+		tx_values.update({
 			'Data': '|'.join([f'{k}={v}' for k,v in data.items()]),
 			'InterfaceVersion': self.sips_version,
 		})
 
 		return_context = {}
-		if sips_tx_values.get('return_url'):
-			return_context['return_url'] = urls.url_quote(sips_tx_values.get('return_url'))
-		return_context['reference'] = sips_tx_values['reference']
-		sips_tx_values['Data'] += '|returnContext=%s' % (json.dumps(return_context))
+		if tx_values.get('return_url'):
+			return_context['return_url'] = urls.url_quote(tx_values.get('return_url'))
+		return_context['reference'] = tx_values['reference']
+		tx_values['Data'] += '|returnContext=%s' % (json.dumps(return_context))
 
-		shasign = self._sips_generate_shasign(sips_tx_values)
-		sips_tx_values['Seal'] = shasign
-		return sips_tx_values
+		shasign = self._sips_generate_shasign(tx_values)
+		tx_values['Seal'] = shasign
+		return tx_values
 
 	def sips_get_form_action_url(self):
 		self.ensure_one()

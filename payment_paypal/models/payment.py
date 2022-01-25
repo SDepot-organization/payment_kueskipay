@@ -87,8 +87,8 @@ class AcquirerPaypal(models.Model):
 	def paypal_form_generate_values(self, values):
 		base_url = self.get_base_url()
 
-		paypal_tx_values = dict(values)
-		paypal_tx_values.update({
+		tx_values = dict(values)
+		tx_values.update({
 			'cmd': '_xclick',
 			'business': self.paypal_email_account,
 			'item_name': '%s: %s' % (self.company_id.name, values['reference']),
@@ -106,10 +106,10 @@ class AcquirerPaypal(models.Model):
 			'paypal_return': urls.url_join(base_url, PaypalController._return_url),
 			'notify_url': urls.url_join(base_url, PaypalController._notify_url),
 			'cancel_return': urls.url_join(base_url, PaypalController._cancel_url),
-			'handling': '%.2f' % paypal_tx_values.pop('fees', 0.0) if self.fees_active else False,
-			'custom': json.dumps({'return_url': '%s' % paypal_tx_values.pop('return_url')}) if paypal_tx_values.get('return_url') else False,
+			'handling': '%.2f' % tx_values.pop('fees', 0.0) if self.fees_active else False,
+			'custom': json.dumps({'return_url': '%s' % tx_values.pop('return_url')}) if tx_values.get('return_url') else False,
 		})
-		return paypal_tx_values
+		return tx_values
 
 	def paypal_get_form_action_url(self):
 		self.ensure_one()

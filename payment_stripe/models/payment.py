@@ -382,16 +382,16 @@ class PaymentTransactionStripe(models.Model):
 								 "credit card details, or contacting your bank?")
 			raise ValidationError(error_msg)
 
-		tx = self.search([('reference', '=', reference)])
-		if not tx:
+		transaction = self.search([('reference', '=', reference)])
+		if not transaction:
 			error_msg = _('Stripe: no order found for reference %s', reference)
 			_logger.error(error_msg)
 			raise ValidationError(error_msg)
-		elif len(tx) > 1:
-			error_msg = _('Stripe: %(count)s orders found for reference %(reference)s', count=len(tx), reference=reference)
+		elif len(transaction) > 1:
+			error_msg = _('Stripe: %(count)s orders found for reference %(reference)s', count=len(transaction), reference=reference)
 			_logger.error(error_msg)
 			raise ValidationError(error_msg)
-		return tx[0]
+		return transaction[0]
 
 	def _stripe_s2s_validate_tree(self, tree):
 		self.ensure_one()
@@ -421,8 +421,8 @@ class PaymentTransactionStripe(models.Model):
 					'acquirer_id': self.acquirer_id.id,
 					'partner_id': self.partner_id.id
 				}
-				token = self.acquirer_id.stripe_s2s_form_process(s2s_data)
-				self.payment_token_id = token.id
+				payment_token = self.acquirer_id.stripe_s2s_form_process(s2s_data)
+				self.payment_token_id = payment_token.id
 			if self.payment_token_id:
 				self.payment_token_id.verified = True
 			return True

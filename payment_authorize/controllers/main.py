@@ -32,13 +32,13 @@ class AuthorizeController(http.Controller):
 
 	@http.route(['/payment/authorize/s2s/create_json_3ds'], type='json', auth='public', csrf=False)
 	def authorize_s2s_create_json_3ds(self, verify_validity=False, **kwargs):
-		token = False
+		token_s2s_process = False
 		acquirer = request.env['payment.acquirer'].browse(int(kwargs.get('acquirer_id')))
 
 		try:
 			if not kwargs.get('partner_id'):
 				kwargs = dict(kwargs, partner_id=request.env.user.partner_id.id)
-			token = acquirer.s2s_process(kwargs)
+			token_s2s_process = acquirer.s2s_process(kwargs)
 		except ValidationError as e:
 			message = e.args[0]
 			if isinstance(message, dict) and 'missing_fields' in message:
@@ -56,30 +56,30 @@ class AuthorizeController(http.Controller):
 				'error': message
 			}
 
-		if not token:
-			res = {
+		if not token_s2s_process:
+			result_create_json_3ds = {
 				'result': False,
 			}
-			return res
+			return result_create_json_3ds
 
-		res = {
+		result_create_json_3ds = {
 			'result': True,
-			'id': token.id,
-			'short_name': token.short_name,
+			'id': token_s2s_process.id,
+			'short_name': token_s2s_process.short_name,
 			'3d_secure': False,
 			'verified': True, #Authorize.net does a transaction type of Authorization Only
 							  #As Authorize.net already verify this card, we do not verify this card again.
 		}
-		#token.validate() don't work with Authorize.net.
+		#token_s2s_process.validate() don't work with Authorize.net.
 		#Payments made via Authorize.net are settled and allowed to be refunded only on the next day.
 		#https://account.authorize.net/help/Miscellaneous/FAQ/Frequently_Asked_Questions.htm#Refund
 		#<quote>The original transaction that you wish to refund must have a status of Settled Successfully.
 		#You cannot issue refunds against unsettled, voided, declined or errored transactions.</quote>
-		return res
+		return result_create_json_3ds
 
 	@http.route(['/payment/authorize/s2s/create'], type='http', auth='public')
 	def authorize_s2s_create(self, **post):
 		acquirer_id = int(post.get('acquirer_id'))
 		acquirer = request.env['payment.acquirer'].browse(acquirer_id)
-		acquirer.s2s_process(post)
+		token_s2s_process = acquirer.s2s_process(post)
 		return utils.redirect("/payment/process")

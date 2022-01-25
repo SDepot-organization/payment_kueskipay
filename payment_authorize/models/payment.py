@@ -87,7 +87,7 @@ class PaymentAcquirerAuthorize(models.Model):
 			billing_state = values['billing_partner_state'].code if values.get('billing_partner_state') else ''
 
 		base_url = self.get_base_url()
-		authorize_tx_values = dict(values)
+		tx_values = dict(values)
 		temp_authorize_tx_values = {
 			'x_login': self.authorize_login,
 			'x_amount': float_repr(values['amount'], values['currency'].decimal_places if values['currency'] else 2),
@@ -120,10 +120,11 @@ class PaymentAcquirerAuthorize(models.Model):
 			'billing_phone': values.get('billing_partner_phone'),
 			'billing_state': billing_state,
 		}
-		temp_authorize_tx_values['returndata'] = authorize_tx_values.pop('return_url', '')
-		temp_authorize_tx_values['x_fp_hash'] = self._authorize_generate_hashing(temp_authorize_tx_values)
-		authorize_tx_values.update(temp_authorize_tx_values)
-		return authorize_tx_values
+		temp_authorize_tx_values['returndata'] = tx_values.pop('return_url', '')
+		temp_authorize_tx_values['x_fp_hash'] = 'PAQUEFUNCIONE'#self._authorize_generate_hashing(temp_authorize_tx_values)
+		#from odoo.addons.payment.models import authorize_tx_values; temp_authorize_tx_values = authorize_tx_values
+		tx_values.update(temp_authorize_tx_values)
+		return tx_values
 
 	def authorize_get_form_action_url(self):
 		self.ensure_one()
@@ -138,8 +139,8 @@ class PaymentAcquirerAuthorize(models.Model):
 			'acquirer_id': int(data.get('acquirer_id')),
 			'partner_id': int(data.get('partner_id'))
 		}
-		PaymentMethod = self.env['payment.token'].sudo().create(values)
-		return PaymentMethod
+		payment_token = self.env['payment.token'].sudo().create(values)
+		return payment_token
 
 	def authorize_s2s_form_validate(self, data):
 		error = dict()

@@ -51,7 +51,7 @@ class PaymentAcquirerPayulatam(models.Model):
 		# so, replace reference code if payment is not done or pending.
 		if tx.state not in ['done', 'pending']:
 			tx.reference = str(uuid.uuid4())
-		payulatam_values = dict(
+		tx_values = dict(
 			values,
 			merchantId=self.payulatam_merchant_id,
 			accountId=self.payulatam_account_id,
@@ -64,8 +64,8 @@ class PaymentAcquirerPayulatam(models.Model):
 			buyerEmail=values['partner_email'],
 			responseUrl=urls.url_join(self.get_base_url(), '/payment/payulatam/response'),
 		)
-		payulatam_values['signature'] = self._payulatam_generate_sign("in", payulatam_values)
-		return payulatam_values
+		tx_values['signature'] = self._payulatam_generate_sign("in", tx_values)
+		return tx_values
 
 	def payulatam_get_form_action_url(self):
 		self.ensure_one()

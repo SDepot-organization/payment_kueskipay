@@ -51,7 +51,7 @@ class AcquirerOdooByAdyen(models.Model):
 		)
 		return hmac.new(secret.encode('utf-8'), token_str.encode('utf-8'), hashlib.sha256).hexdigest()
 
-	def odoo_adyen_form_generate_values(self, values):
+	def odoo_adyen_form_generate_values(self, tx_values):
 		# Don't use the value returned by `self.get_base_url` for the notification_url as
 		# `request.httprequest.url_root` could be forged to retrieve the signature and
 		# fake a payment update
@@ -59,11 +59,11 @@ class AcquirerOdooByAdyen(models.Model):
 		data = {
 			'adyen_uuid': self.odoo_adyen_account_id.adyen_uuid,
 			'payout': self.odoo_adyen_payout_id.code,
-			'amount': self._odoo_adyen_format_amount(values['amount'], values['currency']),
-			'reference': values['reference'],
-			'shopperLocale': values.get('partner_lang'),
+			'amount': self._odoo_adyen_format_amount(tx_values['amount'], tx_values['currency']),
+			'reference': tx_values['reference'],
+			'shopperLocale': tx_values.get('partner_lang'),
 			'metadata': {
-				'merchant_signature': self._odoo_adyen_compute_signature(values['amount'],values['currency'],values['reference']),
+				'merchant_signature': self._odoo_adyen_compute_signature(tx_values['amount'],tx_values['currency'],tx_values['reference']),
 				'notification_url': urls.url_join(base_url, OdooByAdyenController._notification_url),
 			},
 			'returnUrl': urls.url_join(self.get_base_url(), '/payment/process'),
@@ -71,15 +71,15 @@ class AcquirerOdooByAdyen(models.Model):
 
 		if self.save_token in ['ask', 'always']:
 			data.update({
-				'shopperReference': '%s_%s' % (self.odoo_adyen_account_id.adyen_uuid, values['partner_id']),
+				'shopperReference': '%s_%s' % (self.odoo_adyen_account_id.adyen_uuid, tx_values['partner_id']),
 				'storePaymentMethod': True,
 				'recurringProcessingModel': 'CardOnFile',
 			})
 
-		values.update({
+		tx_values.update({
 			'data': json.dumps(data),
 		})
-		return values
+		return tx_values
 
 	def odoo_adyen_get_form_action_url(self):
 		self.ensure_one()

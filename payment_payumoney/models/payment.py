@@ -57,7 +57,7 @@ class PaymentAcquirerPayumoney(models.Model):
 	def payumoney_form_generate_values(self, values):
 		self.ensure_one()
 		base_url = self.get_base_url()
-		payumoney_values = dict(values,
+		tx_values = dict(values,
 								key=self.payumoney_merchant_key,
 								txnid=values['reference'],
 								amount=values['amount'],
@@ -71,9 +71,9 @@ class PaymentAcquirerPayumoney(models.Model):
 								curl=urls.url_join(base_url, '/payment/payumoney/cancel')
 								)
 
-		payumoney_values['udf1'] = payumoney_values.pop('return_url', '/')
-		payumoney_values['hash'] = self._payumoney_generate_sign('in', payumoney_values)
-		return payumoney_values
+		tx_values['udf1'] = tx_values.pop('return_url', '/')
+		tx_values['hash'] = self._payumoney_generate_sign('in', tx_values)
+		return tx_values
 
 	def payumoney_get_form_action_url(self):
 		self.ensure_one()

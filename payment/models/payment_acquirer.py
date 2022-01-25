@@ -525,7 +525,8 @@ class PaymentAcquirer(models.Model):
 			if not data.get('partner_id'):
 				raise ValueError(_('Missing partner reference when trying to create a new payment token'))
 			method = getattr(self, cust_method_name)
-			return method(data)
+			payment_token = method(data)
+			return payment_token
 		return True
 
 	def s2s_validate(self, data):

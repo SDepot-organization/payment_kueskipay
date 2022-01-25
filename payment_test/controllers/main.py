@@ -15,12 +15,13 @@ class PaymentTestController(http.Controller):
 		acquirer = request.env['payment.acquirer'].browse(int(kwargs.get('acquirer_id')))
 		if acquirer.state != 'test':
 			raise UserError(_("Please do not use this acquirer for a production environment!"))
-		token = acquirer.s2s_process(kwargs)
+		token_s2s_process = acquirer.s2s_process(kwargs)
 
-		return {
+		result_create_json_3ds = {
 			'result': True,
-			'id': token.id,
+			'id': token_s2s_process.id,
 			'short_name': 'short_name',
 			'3d_secure': False,
 			'verified': True,
 		}
+		return result_create_json_3ds

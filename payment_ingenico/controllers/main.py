@@ -34,32 +34,32 @@ class OgoneController(http.Controller):
 	def ogone_s2s_create_json(self, **kwargs):
 		if not kwargs.get('partner_id'):
 			kwargs = dict(kwargs, partner_id=request.env.user.partner_id.id)
-		new_id = request.env['payment.acquirer'].browse(int(kwargs.get('acquirer_id'))).s2s_process(kwargs)
-		return new_id.id
+		token_s2s_process = request.env['payment.acquirer'].browse(int(kwargs.get('acquirer_id'))).s2s_process(kwargs)
+		return token_s2s_process.id
 
 	@http.route(['/payment/ogone/s2s/create_json_3ds'], type='json', auth='public', csrf=False)
 	def ogone_s2s_create_json_3ds(self, verify_validity=False, **kwargs):
 		if not kwargs.get('partner_id'):
 			kwargs = dict(kwargs, partner_id=request.env.user.partner_id.id)
-		token = False
+		token_s2s_process = False
 		error = None
 
 		try:
-			token = request.env['payment.acquirer'].browse(int(kwargs.get('acquirer_id'))).s2s_process(kwargs)
+			token_s2s_process = request.env['payment.acquirer'].browse(int(kwargs.get('acquirer_id'))).s2s_process(kwargs)
 		except Exception as e:
 			error = str(e)
 
-		if not token:
-			res = {
+		if not token_s2s_process:
+			result_create_json_3ds = {
 				'result': False,
 				'error': error,
 			}
-			return res
+			return result_create_json_3ds
 
-		res = {
+		result_create_json_3ds = {
 			'result': True,
-			'id': token.id,
-			'short_name': token.short_name,
+			'id': token_s2s_process.id,
+			'short_name': token_s2s_process.short_name,
 			'3d_secure': False,
 			'verified': False,
 		}
@@ -72,26 +72,26 @@ class OgoneController(http.Controller):
 				'exception_url': baseurl + '/payment/ogone/validate/exception',
 				'return_url': kwargs.get('return_url', baseurl)
 				}
-			tx = token.validate(**params)
-			res['verified'] = token.verified
+			tx = token_s2s_process.validate(**params)
+			result_create_json_3ds['verified'] = token_s2s_process.verified
 
 			if tx and tx.html_3ds:
-				res['3d_secure'] = tx.html_3ds
+				result_create_json_3ds['3d_secure'] = tx.html_3ds
 
-		return res
+		return result_create_json_3ds
 
 	@http.route(['/payment/ogone/s2s/create'], type='http', auth='public', methods=["POST"], csrf=False)
 	def ogone_s2s_create(self, **post):
 		error = ''
 		acq = request.env['payment.acquirer'].browse(int(post.get('acquirer_id')))
 		try:
-			token = acq.s2s_process(post)
+			token_s2s_process = acq.s2s_process(post)
 		except Exception as e:
 			# synthax error: 'CHECK ERROR: |Not a valid date\n\n50001111: None'
-			token = False
+			token_s2s_process = False
 			error = str(e).splitlines()[0].split('|')[-1] or ''
 
-		if token and post.get('verify_validity'):
+		if token_s2s_process and post.get('verify_validity'):
 			baseurl = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
 			params = {
 				'accept_url': baseurl + '/payment/ogone/validate/accept',
@@ -99,7 +99,7 @@ class OgoneController(http.Controller):
 				'exception_url': baseurl + '/payment/ogone/validate/exception',
 				'return_url': post.get('return_url', baseurl)
 				}
-			tx = token.validate(**params)
+			tx = token_s2s_process.validate(**params)
 			if tx and tx.html_3ds:
 				return tx.html_3ds
 			# add the payment transaction into the session to let the page /payment/process to handle it

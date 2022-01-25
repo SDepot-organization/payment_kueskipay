@@ -158,9 +158,9 @@ class PaymentAcquirerOgone(models.Model):
 
 	def ogone_form_generate_values(self, values):
 		base_url = self.get_base_url()
-		ogone_tx_values = dict(values)
+		tx_values = dict(values)
 		param_plus = {
-			'return_url': ogone_tx_values.pop('return_url', False)
+			'return_url': tx_values.pop('return_url', False)
 		}
 		temp_ogone_tx_values = {
 			'PSPID': self.ogone_pspid,
@@ -188,8 +188,8 @@ class PaymentAcquirerOgone(models.Model):
 			})
 		shasign = self._ogone_generate_shasign('in', temp_ogone_tx_values)
 		temp_ogone_tx_values['SHASIGN'] = shasign
-		ogone_tx_values.update(temp_ogone_tx_values)
-		return ogone_tx_values
+		tx_values.update(temp_ogone_tx_values)
+		return tx_values
 
 	def ogone_get_form_action_url(self):
 		self.ensure_one()
@@ -217,8 +217,8 @@ class PaymentAcquirerOgone(models.Model):
 			'acquirer_id': int(data.get('acquirer_id')),
 			'partner_id': int(data.get('partner_id'))
 		}
-		pm_id = self.env['payment.token'].sudo().create(values)
-		return pm_id
+		payment_token = self.env['payment.token'].sudo().create(values)
+		return payment_token
 
 
 class PaymentTxOgone(models.Model):
@@ -244,10 +244,10 @@ class PaymentTxOgone(models.Model):
 			raise ValidationError(error_msg)
 
 		# find tx -> @TDENOTE use paytid ?
-		tx = self.search([('reference', '=', reference)])
-		if not tx or len(tx) > 1:
+		transaction = self.search([('reference', '=', reference)])
+		if not transaction or len(transaction) > 1:
 			error_msg = _('Ogone: received data for reference %s') % (reference)
-			if not tx:
+			if not transaction:
 				error_msg += _('; no order found')
 			else:
 				error_msg += _('; multiple order found')
@@ -255,29 +255,29 @@ class PaymentTxOgone(models.Model):
 			raise ValidationError(error_msg)
 
 		# verify shasign
-		shasign_check = tx.acquirer_id._ogone_generate_shasign('out', data)
+		shasign_check = transaction.acquirer_id._ogone_generate_shasign('out', data)
 		if shasign_check.upper() != shasign.upper():
 			error_msg = _('Ogone: invalid shasign, received %s, computed %s, for data %s') % (shasign, shasign_check, data)
 			_logger.info(error_msg)
 			raise ValidationError(error_msg)
 
-		if not tx.acquirer_reference:
-			tx.acquirer_reference = pay_id
+		if not transaction.acquirer_reference:
+			transaction.acquirer_reference = pay_id
 
 		# alias was created on ogone server, store it
-		if alias and tx.type == 'form_save':
+		if alias and transaction.type == 'form_save':
 			Token = self.env['payment.token']
 			domain = [('acquirer_ref', '=', alias)]
 			cardholder = data.get('CN')
 			if not Token.search_count(domain):
-				_logger.info('Ogone: saving alias %s for partner %s' % (data.get('CARDNO'), tx.partner_id))
+				_logger.info('Ogone: saving alias %s for partner %s' % (data.get('CARDNO'), transaction.partner_id))
 				ref = Token.create({'name': data.get('CARDNO') + (' - ' + cardholder if cardholder else ''),
-									'partner_id': tx.partner_id.id,
-									'acquirer_id': tx.acquirer_id.id,
+									'partner_id': transaction.partner_id.id,
+									'acquirer_id': transaction.acquirer_id.id,
 									'acquirer_ref': alias})
-				tx.write({'payment_token_id': ref.id})
+				transaction.write({'payment_token_id': ref.id})
 
-		return tx
+		return transaction
 
 	def _ogone_form_get_invalid_parameters(self, data):
 		invalid_parameters = []

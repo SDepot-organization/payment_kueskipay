@@ -61,13 +61,13 @@ class SepaDirectDebitController(http.Controller):
 			if acquirer.sepa_direct_debit_sign_enabled:
 				if not signature or not signer:
 					raise ValidationError(_('Please enter your signature.'))
-			token = acquirer.s2s_process({
+			token_s2s_process = acquirer.s2s_process({
 				'mandate_id': mandate_id and int(mandate_id),
 				'iban': iban,
 				'acquirer_id': acquirer_id,
 				'partner_id': int(partner_id or request.env.user.partner_id),
 			})
-			mandate = token.sdd_mandate_id
+			mandate = token_s2s_process.sdd_mandate_id
 			mandate._update_mandate(signature=signature, signer=signer, code=validation_code, phone=phone)
 			mandate_id = mandate.id
 		except UserError as e:
@@ -75,8 +75,9 @@ class SepaDirectDebitController(http.Controller):
 				'error': e.args[0],
 				'mandate_id': mandate_id
 			}
-		return {
+		result_create_json_3ds = {
 			'result': True,
-			'id': token.id,
+			'id': token_s2s_process.id,
 			'3d_secure': False,
 		}
+		return result_create_json_3ds

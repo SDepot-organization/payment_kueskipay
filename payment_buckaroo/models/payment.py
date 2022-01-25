@@ -85,8 +85,8 @@ class AcquirerBuckaroo(models.Model):
 
 	def buckaroo_form_generate_values(self, values):
 		base_url = self.get_base_url()
-		buckaroo_tx_values = dict(values)
-		buckaroo_tx_values.update({
+		tx_values = dict(values)
+		tx_values.update({
 			'Brq_websitekey': self.brq_websitekey,
 			'Brq_amount': values['amount'],
 			'Brq_currency': values['currency'] and values['currency'].name or '',
@@ -97,10 +97,10 @@ class AcquirerBuckaroo(models.Model):
 			'Brq_returnerror': urls.url_join(base_url, BuckarooController._exception_url),
 			'Brq_returnreject': urls.url_join(base_url, BuckarooController._reject_url),
 			'Brq_culture': (values.get('partner_lang') or 'en_US').replace('_', '-'),
-			'add_returndata': buckaroo_tx_values.pop('return_url', '') or '',
+			'add_returndata': tx_values.pop('return_url', '') or '',
 		})
-		buckaroo_tx_values['Brq_signature'] = self._buckaroo_generate_digital_sign('in', buckaroo_tx_values)
-		return buckaroo_tx_values
+		tx_values['Brq_signature'] = self._buckaroo_generate_digital_sign('in', tx_values)
+		return tx_values
 
 	def buckaroo_get_form_action_url(self):
 		self.ensure_one()
@@ -134,10 +134,10 @@ class TxBuckaroo(models.Model):
 			_logger.info(error_msg)
 			raise ValidationError(error_msg)
 
-		tx = self.search([('reference', '=', reference)])
-		if not tx or len(tx) > 1:
+		transaction = self.search([('reference', '=', reference)])
+		if not transaction or len(transaction) > 1:
 			error_msg = _('Buckaroo: received data for reference %s') % (reference)
-			if not tx:
+			if not transaction:
 				error_msg += _('; no order found')
 			else:
 				error_msg += _('; multiple order found')
@@ -145,13 +145,13 @@ class TxBuckaroo(models.Model):
 			raise ValidationError(error_msg)
 
 		# verify shasign
-		shasign_check = tx.acquirer_id._buckaroo_generate_digital_sign('out', origin_data)
+		shasign_check = transaction.acquirer_id._buckaroo_generate_digital_sign('out', origin_data)
 		if shasign_check.upper() != shasign.upper():
 			error_msg = _('Buckaroo: invalid shasign, received %s, computed %s, for data %s') % (shasign, shasign_check, data)
 			_logger.info(error_msg)
 			raise ValidationError(error_msg)
 
-		return tx
+		return transaction
 
 	def _buckaroo_form_get_invalid_parameters(self, data):
 		invalid_parameters = []

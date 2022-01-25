@@ -148,49 +148,49 @@ class AcquirerAdyen(models.Model):
 		key = self.adyen_skin_hmac_key.encode('ascii')
 		return base64.b64encode(hmac.new(key, sign, hashlib.sha1).digest())
 
-	def adyen_form_generate_values(self, values):
+	def adyen_form_generate_values(self, tx_values):
 		base_url = self.get_base_url()
 		# tmp
 		import datetime
 		from dateutil import relativedelta
 
-		paymentAmount = self._adyen_convert_amount(values['amount'], values['currency'])
+		paymentAmount = self._adyen_convert_amount(tx_values['amount'], tx_values['currency'])
 		if self.provider == 'adyen' and len(self.adyen_skin_hmac_key) == 64:
 			tmp_date = datetime.datetime.today() + relativedelta.relativedelta(days=1)
 
-			values.update({
-				'merchantReference': values['reference'],
+			tx_values.update({
+				'merchantReference': tx_values['reference'],
 				'paymentAmount': '%d' % paymentAmount,
-				'currencyCode': values['currency'] and values['currency'].name or '',
+				'currencyCode': tx_values['currency'] and tx_values['currency'].name or '',
 				'shipBeforeDate': tmp_date.strftime('%Y-%m-%d'),
 				'skinCode': self.adyen_skin_code,
 				'merchantAccount': self.adyen_merchant_account,
-				'shopperLocale': values.get('partner_lang', ''),
+				'shopperLocale': tx_values.get('partner_lang', ''),
 				'sessionValidity': tmp_date.isoformat('T')[:19] + "Z",
 				'resURL': urls.url_join(base_url, AdyenController._return_url),
-				'merchantReturnData': json.dumps({'return_url': '%s' % values.pop('return_url')}) if values.get('return_url', '') else False,
-				'shopperEmail': values.get('partner_email') or values.get('billing_partner_email') or '',
+				'merchantReturnData': json.dumps({'return_url': '%s' % tx_values.pop('return_url')}) if tx_values.get('return_url', '') else False,
+				'shopperEmail': tx_values.get('partner_email') or tx_values.get('billing_partner_email') or '',
 			})
-			values['merchantSig'] = self._adyen_generate_merchant_sig_sha256('in', values)
+			tx_values['merchantSig'] = self._adyen_generate_merchant_sig_sha256('in', tx_values)
 
 		else:
 			tmp_date = datetime.date.today() + relativedelta.relativedelta(days=1)
 
-			values.update({
-				'merchantReference': values['reference'],
+			tx_values.update({
+				'merchantReference': tx_values['reference'],
 				'paymentAmount': '%d' % paymentAmount,
-				'currencyCode': values['currency'] and values['currency'].name or '',
+				'currencyCode': tx_values['currency'] and tx_values['currency'].name or '',
 				'shipBeforeDate': tmp_date,
 				'skinCode': self.adyen_skin_code,
 				'merchantAccount': self.adyen_merchant_account,
-				'shopperLocale': values.get('partner_lang'),
+				'shopperLocale': tx_values.get('partner_lang'),
 				'sessionValidity': tmp_date,
 				'resURL': urls.url_join(base_url, AdyenController._return_url),
-				'merchantReturnData': json.dumps({'return_url': '%s' % values.pop('return_url')}) if values.get('return_url') else False,
+				'merchantReturnData': json.dumps({'return_url': '%s' % tx_values.pop('return_url')}) if tx_values.get('return_url') else False,
 			})
-			values['merchantSig'] = self._adyen_generate_merchant_sig('in', values)
+			tx_values['merchantSig'] = self._adyen_generate_merchant_sig('in', tx_values)
 
-		return values
+		return tx_values
 
 	def adyen_get_form_action_url(self):
 		self.ensure_one()
@@ -214,10 +214,10 @@ class TxAdyen(models.Model):
 			raise ValidationError(error_msg)
 
 		# find tx -> @TDENOTE use pspReference ?
-		tx = self.env['payment.transaction'].search([('reference', '=', reference)])
-		if not tx or len(tx) > 1:
+		transaction = self.search([('reference', '=', reference)])
+		if not transaction or len(transaction) > 1:
 			error_msg = _('Adyen: received data for reference %s') % (reference)
-			if not tx:
+			if not transaction:
 				error_msg += _('; no order found')
 			else:
 				error_msg += _('; multiple order found')
@@ -225,16 +225,16 @@ class TxAdyen(models.Model):
 			raise ValidationError(error_msg)
 
 		# verify shasign
-		if len(tx.acquirer_id.adyen_skin_hmac_key) == 64:
-			shasign_check = tx.acquirer_id._adyen_generate_merchant_sig_sha256('out', data)
+		if len(transaction.acquirer_id.adyen_skin_hmac_key) == 64:
+			shasign_check = transaction.acquirer_id._adyen_generate_merchant_sig_sha256('out', data)
 		else:
-			shasign_check = tx.acquirer_id._adyen_generate_merchant_sig('out', data)
+			shasign_check = transaction.acquirer_id._adyen_generate_merchant_sig('out', data)
 		if to_text(shasign_check) != to_text(data.get('merchantSig')):
 			error_msg = _('Adyen: invalid merchantSig, received %s, computed %s') % (data.get('merchantSig'), shasign_check)
 			_logger.warning(error_msg)
 			raise ValidationError(error_msg)
 
-		return tx
+		return transaction
 
 	def _adyen_form_get_invalid_parameters(self, data):
 		invalid_parameters = []

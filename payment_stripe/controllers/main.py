@@ -23,27 +23,27 @@ class StripeController(http.Controller):
 	def stripe_s2s_create_json_3ds(self, verify_validity=False, **kwargs):
 		if not kwargs.get('partner_id'):
 			kwargs = dict(kwargs, partner_id=request.env.user.partner_id.id)
-		token = request.env['payment.acquirer'].browse(int(kwargs.get('acquirer_id'))).with_context(stripe_manual_payment=True).s2s_process(kwargs)
+		token_s2s_process = request.env['payment.acquirer'].browse(int(kwargs.get('acquirer_id'))).with_context(stripe_manual_payment=True).s2s_process(kwargs)
 
-		if not token:
-			res = {
+		if not token_s2s_process:
+			result_create_json_3ds = {
 				'result': False,
 			}
-			return res
+			return result_create_json_3ds
 
-		res = {
+		result_create_json_3ds = {
 			'result': True,
-			'id': token.id,
-			'short_name': token.short_name,
+			'id': token_s2s_process.id,
+			'short_name': token_s2s_process.short_name,
 			'3d_secure': False,
 			'verified': False,
 		}
 
 		if verify_validity != False:
-			token.validate()
-			res['verified'] = token.verified
+			token_s2s_process.validate()
+			result_create_json_3ds['verified'] = token_s2s_process.verified
 
-		return res
+		return result_create_json_3ds
 
 	@http.route('/payment/stripe/s2s/create_setup_intent', type='json', auth='public', csrf=False)
 	def stripe_s2s_create_setup_intent(self, acquirer_id, **kwargs):
