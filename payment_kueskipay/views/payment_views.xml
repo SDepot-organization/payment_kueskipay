@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+	<record id="payment_acquirer_view_form_inherit_kueskipay" model="ir.ui.view">
+	    <field name="name">payment.acquirer.view.form.inherit.kueskipay</field>
+	    <field name="model">payment.acquirer</field>
+	    <field name="inherit_id" ref="payment.acquirer_form"/>
+	    <field name="arch" type="xml">
+		<page name="acquirer_credentials" position="attributes">
+		    <attribute name="attrs">{'invisible': [('provider', 'in', ['manual', 'kueskipay'])]}</attribute>
+		</page>
+		<field name="pre_msg" position="attributes">
+		    <attribute name="attrs">{'invisible': [('provider', '=', 'kueskipay')]}</attribute>
+		</field>
+		<field name="done_msg" position="attributes">
+		    <attribute name="attrs">{'invisible': [('provider', '=', 'kueskipay')]}</attribute>
+		</field>
+		<field name="cancel_msg" position="attributes">
+		    <attribute name="attrs">{'invisible': [('provider', '=', 'kueskipay')]}</attribute>
+		</field>
+	    </field>
+	</record>
+    </data>
+</odoo>
