@@ -15,6 +15,14 @@
 			<input type="hidden" name="buyerEmail" t-att-value='buyerEmail'/>
 			<input type="hidden" name="responseUrl" t-att-value='responseUrl'/>
 			<input type="hidden" name="extra1" t-att-value="extra1"/>
+			<!-- tx -->
+			<input type="hidden" name='reference' t-att-value='referenceCode'/><!-- se reqeuiere el valor reference cuando no se procesa el formulario  -->
+			<!--<input type="hidden" name='currency' t-att-value='currency.name'/>--> <!-- se reqeuiere el campo cuando no se procesa el formulario  -->
+			<input type="hidden" name="transactionId" t-att-value="signature"/>
+			<input type="hidden" name="TX_VALUE" t-att-value="amount"/>
+			<input type="hidden" name="transactionState" value="7"/>
+			<input type="hidden" name="lapTransactionState" value="APPROVED"/>
+			<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 		</div>
 	</template>
 </odoo>

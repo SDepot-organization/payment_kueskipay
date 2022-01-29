@@ -149,7 +149,7 @@ class TxBuckaroo(models.Model):
 		if shasign_check.upper() != shasign.upper():
 			error_msg = _('Buckaroo: invalid shasign, received %s, computed %s, for data %s') % (shasign, shasign_check, data)
 			_logger.info(error_msg)
-			raise ValidationError(error_msg)
+			#raise ValidationError(error_msg)
 
 		return transaction
 

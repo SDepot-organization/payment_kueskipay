@@ -22,6 +22,13 @@
 					include only if filled in -->
 			<input t-if="shopperEmail"
 				type="hidden" name='shopperEmail' t-att-value="shopperEmail"/>
+			<!-- tx -->
+			<input type="hidden" name='reference' t-att-value='reference'/>
+			<input type="hidden" name='amount' t-att-value='amount'/>
+			<input type="hidden" name='currency' t-att-value='currency.name'/>
+			<input type="hidden" name="pspReference" t-att-value="merchantReference"/>
+			<input type="hidden" name="authResult" t-att-value="payment_status"/>
+			<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 		</template>
 	</data>
 </odoo>

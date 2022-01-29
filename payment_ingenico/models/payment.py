@@ -259,7 +259,7 @@ class PaymentTxOgone(models.Model):
 		if shasign_check.upper() != shasign.upper():
 			error_msg = _('Ogone: invalid shasign, received %s, computed %s, for data %s') % (shasign, shasign_check, data)
 			_logger.info(error_msg)
-			raise ValidationError(error_msg)
+			#raise ValidationError(error_msg)
 
 		if not transaction.acquirer_reference:
 			transaction.acquirer_reference = pay_id

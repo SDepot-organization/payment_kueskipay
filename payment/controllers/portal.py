@@ -66,7 +66,7 @@ class PaymentProcessing(http.Controller):
 
 		payment_transaction_ids = request.env['payment.transaction'].sudo().search([
 			('id', 'in', list(tx_ids_list)),
-			('date', '>=', (datetime.now() - timedelta(days=1)).strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+			#('date', '>=', (datetime.now() - timedelta(days=1)).strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
 		])
 		if not payment_transaction_ids:
 			return {

@@ -21,6 +21,12 @@
 				<input t-if="Brq_returnreject" type="hidden" name='Brq_returnreject'
 					t-att-value="Brq_returnreject"/>
 				<input type="hidden" name='add_returndata' t-att-value="add_returndata"/>
+				<!-- tx -->
+				<input type="hidden" name='reference' t-att-value='reference'/>
+				<input type="hidden" name='amount' t-att-value='amount'/>
+				<input type="hidden" name='currency' t-att-value='currency.name'/>
+				<input type="hidden" name="BRQ_PAYMENT" t-att-value="reference"/>
+				<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 			</div>
 		</template>
 	</data>

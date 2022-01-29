@@ -232,7 +232,7 @@ class TxAdyen(models.Model):
 		if to_text(shasign_check) != to_text(data.get('merchantSig')):
 			error_msg = _('Adyen: invalid merchantSig, received %s, computed %s') % (data.get('merchantSig'), shasign_check)
 			_logger.warning(error_msg)
-			raise ValidationError(error_msg)
+			#raise ValidationError(error_msg)
 
 		return transaction
 

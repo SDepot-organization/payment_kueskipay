@@ -77,7 +77,7 @@ class TransferPaymentTransaction(models.Model):
 		transaction = self.search([('reference', '=', reference)])
 
 		if not transaction or len(transaction) > 1:
-			error_msg = _('received data for reference %s') % (pprint.pformat(reference))
+			error_msg = _('Transfer received data for reference %s') % (pprint.pformat(reference))
 			if not transaction:
 				error_msg += _('; no order found')
 			else:

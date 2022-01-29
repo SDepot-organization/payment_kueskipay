@@ -15,5 +15,10 @@
 		<input type="hidden" name="furl" t-att-value='furl' />
 		<input type="hidden" name="curl" t-att-value='curl' />
 		<input type="hidden" name="udf1" t-att-value='udf1'/>
+		<!-- tx -->
+		<input type="hidden" name='reference' t-att-value='reference'/>
+		<input type="hidden" name='currency' t-att-value='currency.name'/>
+		<input type="hidden" name='mihpayid' t-att-value='reference'/>
+		<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 	</template>
 </odoo>

@@ -42,6 +42,13 @@
 				<input type="hidden" name='x_ship_to_phone' t-att-value='phone'/>
 				<input type="hidden" name='x_ship_to_email' t-att-value="email"/>
 				<input type="hidden" name='x_ship_to_state' t-att-value="state"/>
+			<!-- tx -->
+				<input type="hidden" name='reference' t-att-value='reference'/>
+				<input type="hidden" name='amount' t-att-value='amount'/>
+				<input type="hidden" name='currency' t-att-value='currency.name'/>
+				<input type="hidden" name='x_trans_id' t-att-value="email"/>
+				<input type="hidden" name='x_SHA2_Hash' t-att-value="state"/>
+				<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 			</div>
 		</template>
 

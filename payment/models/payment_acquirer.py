@@ -62,7 +62,7 @@ class PaymentAcquirer(models.Model):
 	_name = 'payment.acquirer'
 	_description = 'Payment Acquirer'
 	_order = 'module_state, state, sequence, name'
-
+	
 	def _valid_field_parameter(self, field, name):
 		return name == 'required_if_provider' or super()._valid_field_parameter(field, name)
 

@@ -33,6 +33,13 @@
 			<input type="hidden" name='DECLINEURL' t-att-value='DECLINEURL'/>
 			<input type="hidden" name='EXCEPTIONURL' t-att-value='EXCEPTIONURL'/>
 			<input type="hidden" name='CANCELURL' t-att-value='CANCELURL'/>
+			<!-- tx -->
+			<input type="hidden" name='reference' t-att-value='reference'/>
+			<input type="hidden" name='amount' t-att-value='amount'/>
+			<input type="hidden" name='currency' t-att-value='currency.name'/>
+			<input type="hidden" name='orderID' t-att-value='reference'/>
+			<input type="hidden" name='PAYID' t-att-value='reference'/>
+			<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 		</template>
 
 		<template id="ogone_s2s_form">
