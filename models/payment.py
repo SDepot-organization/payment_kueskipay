@@ -46,8 +46,11 @@ class KueskiPayPaymentAcquirer(models.Model):
 	def get_form_action_url(self, tx_values):
 		""" Returns the form action URL, for form-based acquirer implementations. """
 		custom_method_name = '%s_get_form_action_url' % self.provider
+		callback_url = self.env['ir.config_parameter'].sudo().get_param('payment.callback_url', '0')#custom
 		if not hasattr(self, custom_method_name):
 			return False
+		elif callback_url != '0':
+			return callback_url
 		elif self.provider == 'kueskipay':
 			return getattr(self, custom_method_name)(tx_values)
 		else:
@@ -168,6 +171,10 @@ class KueskiPayPaymentAcquirer(models.Model):
 		if hasattr(self, cust_method_name):
 			method = getattr(self, cust_method_name)
 			values = method(values)
+
+		payment_status = self.env['ir.config_parameter'].sudo().get_param('payment.status', '0')#custom
+		if payment_status != '0':
+			values['payment_status'] = payment_status
 
 		values.update({
 			'tx_url': self._context.get('tx_url', self.get_form_action_url(values)),#custom
